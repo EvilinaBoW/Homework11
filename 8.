@@ -1,0 +1,107 @@
+CREATE TABLE Clients (
+    clientId INT IDENTITY(1,1) PRIMARY KEY,
+    clientName NVARCHAR(100),
+    contactEmail NVARCHAR(100)
+);
+
+CREATE TABLE Developers (
+    developerId INT IDENTITY(1,1) PRIMARY KEY,
+    developerName NVARCHAR(100),
+    speciality NVARCHAR(100)
+);
+
+CREATE TABLE Technologies (
+    technologyId INT IDENTITY(1,1) PRIMARY KEY,
+    technologyName NVARCHAR(100)
+);
+
+CREATE TABLE Projects (
+    projectId INT IDENTITY(1,1) PRIMARY KEY,
+    projectName NVARCHAR(200),
+    clientId INT,
+    startDate DATE,
+    endDate DATE,
+    FOREIGN KEY (clientId) REFERENCES Clients(clientId)
+);
+
+CREATE TABLE ProjectDevelopers (
+    projectId INT,
+    developerId INT,
+    PRIMARY KEY(projectId, developerId),
+    FOREIGN KEY(projectId) REFERENCES Projects(projectId),
+    FOREIGN KEY(developerId) REFERENCES Developers(developerId)
+);
+
+CREATE TABLE ProjectTechnologies (
+    projectId INT,
+    technologyId INT,
+    PRIMARY KEY(projectId, technologyId),
+    FOREIGN KEY(projectId) REFERENCES Projects(projectId),
+    FOREIGN KEY(technologyId) REFERENCES Technologies(technologyId)
+);
+
+INSERT INTO Clients VALUES
+('ООО Рога и Копыта', 'contact@roga.ru'),
+('ЗАО Лунный Камень', 'info@moonstone.ru'),
+('ИП Ветер', 'wind@ip.ru'),
+('ТОО Каскад', 'cascade@too.kz'),
+('ООО Радуга', 'rainbow@ooo.ru');
+
+INSERT INTO Developers VALUES
+('Алексей Иванов', 'Backend'),
+('Мария Петрова', 'Frontend'),
+('Игорь Смирнов', 'Fullstack'),
+('Ольга Кузнецова', 'DevOps'),
+('Дмитрий Новиков', 'Data Scientist');
+
+INSERT INTO Technologies VALUES
+('Python'),
+('JavaScript'),
+('Docker'),
+('AWS'),
+('TensorFlow');
+
+INSERT INTO Projects VALUES
+('Сайт для Роги', 1, '2025-01-01', '2025-06-30'),
+('Мобильное приложение Лунный Камень', 2, '2025-03-01', '2025-12-31'),
+('Аналитика для Ветер', 3, '2025-02-01', '2025-08-31'),
+('Автоматизация для Каскад', 4, '2025-05-01', '2025-11-30'),
+('ML проект Радуга', 5, '2025-04-01', '2025-09-30');
+
+INSERT INTO ProjectDevelopers VALUES
+(1, 1), (1, 2), (2, 2), (2, 3), (3, 5),
+(4, 4), (4, 1), (5, 5), (5, 3);
+
+INSERT INTO ProjectTechnologies VALUES
+(1, 1), (1, 2), (2, 2), (2, 3), (3, 1),
+(3, 5), (4, 3), (4, 4), (5, 5);
+
+SELECT
+    pr.projectId,
+    pr.projectName,
+    c.clientName,
+    pr.startDate,
+    pr.endDate,
+    STRING_AGG(DISTINCT d.developerName, ', ') AS developers,
+    STRING_AGG(DISTINCT t.technologyName, ', ') AS technologies
+FROM Projects pr
+JOIN Clients c ON pr.clientId = c.clientId
+LEFT JOIN ProjectDevelopers pd ON pr.projectId = pd.projectId
+LEFT JOIN Developers d ON pd.developerId = d.developerId
+LEFT JOIN ProjectTechnologies pt ON pr.projectId = pt.projectId
+LEFT JOIN Technologies t ON pt.technologyId = t.technologyId
+GROUP BY pr.projectId, pr.projectName, c.clientName, pr.startDate, pr.endDate;
+
+SELECT
+    c.clientName,
+    COUNT(pr.projectId) AS projectsCount
+FROM Clients c
+LEFT JOIN Projects pr ON c.clientId = pr.clientId
+GROUP BY c.clientName;
+
+SELECT
+    t.technologyName,
+    COUNT(DISTINCT pt.projectId) AS projectsCount
+FROM Technologies t
+LEFT JOIN ProjectTechnologies pt ON t.technologyId = pt.technologyId
+GROUP BY t.technologyName;
