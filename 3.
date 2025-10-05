@@ -1,0 +1,96 @@
+CREATE TABLE Exhibits (
+    exhibitId INT IDENTITY(1,1) PRIMARY KEY,
+    exhibitName NVARCHAR(200),
+    description NVARCHAR(500)
+);
+
+CREATE TABLE Exhibitions (
+    exhibitionId INT IDENTITY(1,1) PRIMARY KEY,
+    exhibitionName NVARCHAR(200),
+    startDate DATE,
+    endDate DATE
+);
+
+CREATE TABLE Visitors (
+    visitorId INT IDENTITY(1,1) PRIMARY KEY,
+    visitorName NVARCHAR(100),
+    visitorPhone NVARCHAR(20)
+);
+
+CREATE TABLE Tours (
+    tourId INT IDENTITY(1,1) PRIMARY KEY,
+    exhibitionId INT,
+    tourDate DATETIME,
+    guideName NVARCHAR(100),
+    FOREIGN KEY (exhibitionId) REFERENCES Exhibitions(exhibitionId)
+);
+
+CREATE TABLE TourVisitors (
+    tourId INT,
+    visitorId INT,
+    PRIMARY KEY(tourId, visitorId),
+    FOREIGN KEY (tourId) REFERENCES Tours(tourId),
+    FOREIGN KEY (visitorId) REFERENCES Visitors(visitorId)
+);
+
+CREATE TABLE ExhibitionExhibits (
+    exhibitionId INT,
+    exhibitId INT,
+    PRIMARY KEY(exhibitionId, exhibitId),
+    FOREIGN KEY (exhibitionId) REFERENCES Exhibitions(exhibitionId),
+    FOREIGN KEY (exhibitId) REFERENCES Exhibits(exhibitId)
+);
+
+INSERT INTO Exhibits VALUES
+('Картина “Вечер”', 'Картина известного художника Х'),
+('Скульптура “Мыслитель”', 'Известная бронзовая скульптура'),
+('Антикварные часы', 'Часы 19 века'),
+('Раритетная книга', 'Первая печатная книга'),
+('Древняя керамика', 'Керамика эпохи неолита');
+
+INSERT INTO Exhibitions VALUES
+('Осенняя выставка', '2025-09-01', '2025-11-30'),
+('Исторические артефакты', '2025-06-15', '2025-09-15'),
+('Современное искусство', '2025-10-01', '2025-12-31'),
+('Мифы и легенды', '2025-08-01', '2025-10-01'),
+('Ренессанс', '2025-05-01', '2025-07-31');
+
+INSERT INTO Visitors VALUES
+('Иванов И.И.', '+7-111-222-33-44'),
+('Петров П.П.', '+7-222-333-44-55'),
+('Сидоров С.С.', '+7-333-444-55-66'),
+('Кузнецова А.А.', '+7-444-555-66-77'),
+('Морозова М.М.', '+7-555-666-77-88');
+
+INSERT INTO Tours VALUES
+(1, '2025-09-10 14:00', 'Гид Алексей'),
+(2, '2025-07-01 12:00', 'Гид Ксения'),
+(3, '2025-11-05 16:00', 'Гид Сергей'),
+(4, '2025-08-15 10:00', 'Гид Ольга'),
+(5, '2025-06-10 11:00', 'Гид Герман');
+
+INSERT INTO TourVisitors VALUES
+(1,1), (1,2), (2,3), (3,4), (3,5), (4,1), (5,2);
+
+INSERT INTO ExhibitionExhibits VALUES
+(1,1),(1,5),(2,3),(2,4),(3,1),(3,2),(4,4),(5,5);
+
+SELECT 
+    t.tourId, t.tourDate, t.guideName,
+    e.exhibitionName,
+    v.visitorName, v.visitorPhone
+FROM Tours t
+JOIN Exhibitions e ON t.exhibitionId = e.exhibitionId
+JOIN TourVisitors tv ON t.tourId = tv.tourId
+JOIN Visitors v ON tv.visitorId = v.visitorId
+ORDER BY t.tourId;
+
+SELECT t.tourId, COUNT(tv.visitorId) AS visitorsCount
+FROM Tours t
+LEFT JOIN TourVisitors tv ON t.tourId = tv.tourId
+GROUP BY t.tourId;
+
+SELECT e.exhibitionName, COUNT(ee.exhibitId) AS exhibitsCount
+FROM Exhibitions e
+LEFT JOIN ExhibitionExhibits ee ON e.exhibitionId = ee.exhibitionId
+GROUP BY e.exhibitionName;
