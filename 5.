@@ -1,0 +1,83 @@
+CREATE TABLE Masters (
+    masterId INT IDENTITY(1,1) PRIMARY KEY,
+    masterName NVARCHAR(100)
+);
+
+CREATE TABLE Services (
+    serviceId INT IDENTITY(1,1) PRIMARY KEY,
+    serviceName NVARCHAR(100),
+    price DECIMAL(8,2)
+);
+
+CREATE TABLE Clients (
+    clientId INT IDENTITY(1,1) PRIMARY KEY,
+    clientName NVARCHAR(100),
+    clientPhone NVARCHAR(20)
+);
+
+CREATE TABLE Appointments (
+    appointmentId INT IDENTITY(1,1) PRIMARY KEY,
+    clientId INT,
+    masterId INT,
+    serviceId INT,
+    appointmentDate DATETIME,
+    FOREIGN KEY (clientId) REFERENCES Clients(clientId),
+    FOREIGN KEY (masterId) REFERENCES Masters(masterId),
+    FOREIGN KEY (serviceId) REFERENCES Services(serviceId)
+);
+
+INSERT INTO Masters VALUES
+('Анна Смирнова'),
+('Елена Петрова'),
+('Игорь Иванов'),
+('Мария Кузнецова'),
+('Алексей Морозов');
+
+INSERT INTO Services VALUES
+('Стрижка', 1000.00),
+('Маникюр', 800.00),
+('Покраска волос', 2500.00),
+('Массаж', 1500.00),
+('Укладка', 1200.00);
+
+INSERT INTO Clients VALUES
+('Ирина Иванова', '+7-111-222-33-44'),
+('Ольга Сидорова', '+7-222-333-44-55'),
+('Наталья Петрова', '+7-333-444-55-66'),
+('Елена Смирнова', '+7-444-555-66-77'),
+('Александр Козлов', '+7-555-666-77-88');
+
+INSERT INTO Appointments VALUES
+(1, 1, 1, '2025-10-01 10:00'),
+(2, 2, 3, '2025-10-01 12:00'),
+(3, 3, 2, '2025-10-02 14:00'),
+(4, 4, 5, '2025-10-03 16:00'),
+(5, 5, 4, '2025-10-04 11:00');
+
+SELECT 
+    a.appointmentId,
+    c.clientName,
+    m.masterName,
+    s.serviceName,
+    s.price,
+    a.appointmentDate
+FROM Appointments a
+JOIN Clients c ON a.clientId = c.clientId
+JOIN Masters m ON a.masterId = m.masterId
+JOIN Services s ON a.serviceId = s.serviceId
+ORDER BY a.appointmentDate;
+
+SELECT 
+    m.masterName,
+    COUNT(a.appointmentId) AS appointmentCount
+FROM Masters m
+LEFT JOIN Appointments a ON m.masterId = a.masterId
+GROUP BY m.masterName;
+
+SELECT 
+    m.masterName,
+    SUM(s.price) AS totalRevenue
+FROM Masters m
+JOIN Appointments a ON m.masterId = a.masterId
+JOIN Services s ON a.serviceId = s.serviceId
+GROUP BY m.masterName;
