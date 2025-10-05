@@ -1,0 +1,83 @@
+CREATE TABLE Authors (
+    authorId INT IDENTITY(1,1) PRIMARY KEY,
+    authorName NVARCHAR(150)
+);
+
+CREATE TABLE Editors (
+    editorId INT IDENTITY(1,1) PRIMARY KEY,
+    editorName NVARCHAR(150)
+);
+
+CREATE TABLE Books (
+    bookId INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(200),
+    authorId INT,
+    editorId INT,
+    publishYear INT,
+    FOREIGN KEY (authorId) REFERENCES Authors(authorId),
+    FOREIGN KEY (editorId) REFERENCES Editors(editorId)
+);
+
+CREATE TABLE PrintRuns (
+    printRunId INT IDENTITY(1,1) PRIMARY KEY,
+    bookId INT,
+    printDate DATE,
+    quantity INT,
+    FOREIGN KEY (bookId) REFERENCES Books(bookId)
+);
+
+INSERT INTO Authors VALUES
+('Толстой Л.Н.'),
+('Булгаков М.А.'),
+('Пушкин А.С.'),
+('Достоевский Ф.М.'),
+('Лермонтов М.Ю.');
+
+INSERT INTO Editors VALUES
+('Иванова Е.В.'),
+('Петров А.И.'),
+('Сидорова М.К.'),
+('Кузнецова Л.Н.'),
+('Морозова А.С.');
+
+INSERT INTO Books VALUES
+('Война и мир', 1, 1, 1869),
+('Мастер и Маргарита', 2, 2, 1967),
+('Евгений Онегин', 3, 3, 1833),
+('Преступление и наказание', 4, 4, 1866),
+('Герой нашего времени', 5, 5, 1840);
+
+INSERT INTO PrintRuns VALUES
+(1, '2025-01-15', 10000),
+(2, '2025-03-10', 8000),
+(3, '2025-02-05', 12000),
+(4, '2025-04-01', 9000),
+(5, '2025-05-20', 7000);
+
+SELECT
+    b.bookId,
+    b.title,
+    a.authorName,
+    e.editorName,
+    b.publishYear,
+    pr.printDate,
+    pr.quantity
+FROM Books b
+JOIN Authors a ON b.authorId = a.authorId
+JOIN Editors e ON b.editorId = e.editorId
+JOIN PrintRuns pr ON b.bookId = pr.bookId;
+
+SELECT 
+    b.title,
+    SUM(pr.quantity) AS totalPrintQuantity
+FROM Books b
+JOIN PrintRuns pr ON b.bookId = pr.bookId
+GROUP BY b.title
+ORDER BY totalPrintQuantity DESC;
+
+SELECT 
+    a.authorName,
+    COUNT(b.bookId) AS booksCount
+FROM Authors a
+LEFT JOIN Books b ON a.authorId = b.authorId
+GROUP BY a.authorName;
