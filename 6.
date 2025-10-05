@@ -1,0 +1,85 @@
+CREATE TABLE Owners (
+    ownerId INT IDENTITY(1,1) PRIMARY KEY,
+    ownerName NVARCHAR(100),
+    ownerPhone NVARCHAR(20)
+);
+
+CREATE TABLE Animals (
+    animalId INT IDENTITY(1,1) PRIMARY KEY,
+    ownerId INT,
+    animalName NVARCHAR(100),
+    species NVARCHAR(50),
+    breed NVARCHAR(50),
+    birthDate DATE,
+    FOREIGN KEY (ownerId) REFERENCES Owners(ownerId)
+);
+
+CREATE TABLE Vets (
+    vetId INT IDENTITY(1,1) PRIMARY KEY,
+    vetName NVARCHAR(100),
+    specialization NVARCHAR(100)
+);
+
+CREATE TABLE Treatments (
+    treatmentId INT IDENTITY(1,1) PRIMARY KEY,
+    animalId INT,
+    vetId INT,
+    treatmentDate DATE,
+    diagnosis NVARCHAR(200),
+    procedure NVARCHAR(200),
+    FOREIGN KEY (animalId) REFERENCES Animals(animalId),
+    FOREIGN KEY (vetId) REFERENCES Vets(vetId)
+);
+
+INSERT INTO Owners VALUES
+('Иванов И.И.', '+7-111-222-33-44'),
+('Петров П.П.', '+7-222-333-44-55'),
+('Сидорова С.С.', '+7-333-444-55-66'),
+('Кузнецова А.А.', '+7-444-555-66-77'),
+('Морозов М.М.', '+7-555-666-77-88');
+
+INSERT INTO Animals VALUES
+(1, 'Барсик', 'Кошка', 'Сиамская', '2018-05-10'),
+(2, 'Рекс', 'Собака', 'Овчарка', '2016-08-21'),
+(3, 'Кеша', 'Попугай', 'Волнистый', '2019-02-14'),
+(4, 'Тузик', 'Собака', 'Лабрадор', '2017-11-30'),
+(5, 'Мурка', 'Кошка', 'Мейн-кун', '2020-01-01');
+
+INSERT INTO Vets VALUES
+('Доктор Смирнов', 'Хирург'),
+('Доктор Петров', 'Терапевт'),
+('Доктор Иванова', 'Травматолог'),
+('Доктор Козлова', 'Дерматолог'),
+('Доктор Новиков', 'Педиатр');
+
+INSERT INTO Treatments VALUES
+(1, 1, '2025-09-10', 'Пищевая аллергия', 'Лечение антигистаминными'),
+(2, 2, '2025-09-15', 'Перелом лапы', 'Операция'),
+(3, 3, '2025-09-20', 'Инфекция', 'Антибиотики'),
+(4, 4, '2025-09-25', 'Кожное заболевание', 'Медикаментозная терапия'),
+(5, 5, '2025-09-30', 'Вирусное заболевание', 'Вакцинация');
+
+SELECT
+    t.treatmentId,
+    a.animalName,
+    a.species,
+    o.ownerName,
+    v.vetName,
+    t.treatmentDate,
+    t.diagnosis,
+    t.procedure
+FROM Treatments t
+JOIN Animals a ON t.animalId = a.animalId
+JOIN Owners o ON a.ownerId = o.ownerId
+JOIN Vets v ON t.vetId = v.vetId;
+
+SELECT 
+    v.vetName,
+    COUNT(t.treatmentId) AS treatmentCount
+FROM Vets v
+LEFT JOIN Treatments t ON v.vetId = t.vetId
+GROUP BY v.vetName;
+
+SELECT species, COUNT(animalId) AS animalsCount
+FROM Animals
+GROUP BY species;
