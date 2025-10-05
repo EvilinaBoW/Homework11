@@ -1,0 +1,101 @@
+CREATE TABLE Products (
+    productId INT IDENTITY(1,1) PRIMARY KEY,
+    productName NVARCHAR(150),
+    brand NVARCHAR(100),
+    category NVARCHAR(50)
+);
+
+CREATE TABLE Sizes (
+    sizeId INT IDENTITY(1,1) PRIMARY KEY,
+    sizeLabel NVARCHAR(10) 
+);
+
+CREATE TABLE Customers (
+    customerId INT IDENTITY(1,1) PRIMARY KEY,
+    customerName NVARCHAR(100),
+    customerEmail NVARCHAR(100)
+);
+
+CREATE TABLE Collections (
+    collectionId INT IDENTITY(1,1) PRIMARY KEY,
+    collectionName NVARCHAR(100),
+    season NVARCHAR(50), 
+    year INT
+);
+
+CREATE TABLE ProductSizes (
+    productId INT,
+    sizeId INT,
+    stock INT,
+    PRIMARY KEY (productId, sizeId),
+    FOREIGN KEY (productId) REFERENCES Products(productId),
+    FOREIGN KEY (sizeId) REFERENCES Sizes(sizeId)
+);
+
+CREATE TABLE ProductCollections (
+    productId INT,
+    collectionId INT,
+    PRIMARY KEY (productId, collectionId),
+    FOREIGN KEY (productId) REFERENCES Products(productId),
+    FOREIGN KEY (collectionId) REFERENCES Collections(collectionId)
+);
+
+INSERT INTO Products VALUES
+('Футболка', 'BrandA', 'Одежда'),
+('Джинсы', 'BrandB', 'Одежда'),
+('Куртка', 'BrandA', 'Верхняя одежда'),
+('Платье', 'BrandC', 'Одежда'),
+('Толстовка', 'BrandB', 'Одежда');
+
+INSERT INTO Sizes VALUES
+('S'), ('M'), ('L'), ('XL'), ('XXL');
+
+INSERT INTO Customers VALUES
+('Ирина Иванова', 'irina@example.com'),
+('Олег Петров', 'oleg@example.com'),
+('Светлана Сидорова', 'svetlana@example.com'),
+('Алексей Кузнецов', 'aleksey@example.com'),
+('Мария Морозова', 'maria@example.com');
+
+INSERT INTO Collections VALUES
+('Весна', 'Весна', 2025),
+('Лето', 'Лето', 2025),
+('Осень', 'Осень', 2025),
+('Зима', 'Зима', 2024),
+('Праздничная', 'Зима', 2024);
+
+INSERT INTO ProductSizes VALUES
+(1, 1, 50), (1, 2, 75), (2, 3, 60), (3, 4, 40), (4, 5, 30),
+(5, 1, 20), (2, 2, 50), (3, 3, 45), (4, 4, 35), (5, 5, 25);
+
+INSERT INTO ProductCollections VALUES
+(1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
+(1, 2), (2, 3), (3, 4);
+
+SELECT 
+    p.productName,
+    p.brand,
+    s.sizeLabel,
+    ps.stock,
+    c.collectionName,
+    c.season,
+    c.year
+FROM Products p
+JOIN ProductSizes ps ON p.productId = ps.productId
+JOIN Sizes s ON ps.sizeId = s.sizeId
+JOIN ProductCollections pc ON p.productId = pc.productId
+JOIN Collections c ON pc.collectionId = c.collectionId
+ORDER BY p.productName, s.sizeLabel;
+
+SELECT 
+    s.sizeLabel,
+    SUM(ps.stock) AS totalStock
+FROM Sizes s
+JOIN ProductSizes ps ON s.sizeId = ps.sizeId
+GROUP BY s.sizeLabel;
+
+SELECT 
+    brand,
+    COUNT(productId) AS productsCount
+FROM Products
+GROUP BY brand;
