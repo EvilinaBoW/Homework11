@@ -1,0 +1,102 @@
+CREATE TABLE Movies (
+    movieId INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(200) NOT NULL,
+    genre NVARCHAR(50),
+    duration INT -- длительность в минутах
+);
+
+CREATE TABLE Halls (
+    hallId INT IDENTITY(1,1) PRIMARY KEY,
+    hallName NVARCHAR(50),
+    seatCount INT
+);
+
+CREATE TABLE Sessions (
+    sessionId INT IDENTITY(1,1) PRIMARY KEY,
+    movieId INT,
+    hallId INT,
+    sessionTime DATETIME,
+    FOREIGN KEY (movieId) REFERENCES Movies(movieId),
+    FOREIGN KEY (hallId) REFERENCES Halls(hallId)
+);
+
+CREATE TABLE Visitors (
+    visitorId INT IDENTITY(1,1) PRIMARY KEY,
+    visitorName NVARCHAR(100),
+    visitorPhone NVARCHAR(20)
+);
+
+CREATE TABLE Tickets (
+    ticketId INT IDENTITY(1,1) PRIMARY KEY,
+    sessionId INT,
+    visitorId INT,
+    seatNumber INT,
+    price DECIMAL(8,2),
+    FOREIGN KEY (sessionId) REFERENCES Sessions(sessionId),
+    FOREIGN KEY (visitorId) REFERENCES Visitors(visitorId)
+);
+
+INSERT INTO Movies VALUES
+('Фильм А', 'Драма', 120),
+('Фильм Б', 'Комедия', 90),
+('Фильм В', 'Фантастика', 110),
+('Фильм Г', 'Триллер', 100),
+('Фильм Д', 'Мультфильм', 80);
+
+INSERT INTO Halls VALUES
+('Зал 1', 100),
+('Зал 2', 80),
+('Зал 3', 60),
+('Зал 4', 50),
+('VIP-зал', 30);
+
+INSERT INTO Sessions VALUES
+(1,1,'2025-10-10 18:00'),
+(2,2,'2025-10-10 20:00'),
+(3,3,'2025-10-11 19:00'),
+(4,4,'2025-10-12 21:00'),
+(5,5,'2025-10-12 17:00');
+
+INSERT INTO Visitors VALUES
+('Иванов И.И.', '+7-111-222-33-44'),
+('Петров П.П.', '+7-222-333-44-55'),
+('Сидоров С.С.', '+7-333-444-55-66'),
+('Кузнецова А.А.', '+7-444-555-66-77'),
+('Морозова М.М.', '+7-555-666-77-88');
+
+INSERT INTO Tickets VALUES
+(1,1,10,400),
+(2,2,15,350),
+(3,3,20,300),
+(4,4,5,500),
+(5,5,25,450);
+
+SELECT 
+    t.ticketId,
+    m.title,
+    s.sessionTime,
+    h.hallName,
+    t.seatNumber,
+    v.visitorName,
+    t.price
+FROM Tickets t
+JOIN Sessions s ON t.sessionId = s.sessionId
+JOIN Movies m ON s.movieId = m.movieId
+JOIN Halls h ON s.hallId = h.hallId
+JOIN Visitors v ON t.visitorId = v.visitorId;
+
+SELECT 
+    m.title,
+    COUNT(t.ticketId) AS ticketsSold
+FROM Tickets t
+JOIN Sessions s ON t.sessionId = s.sessionId
+JOIN Movies m ON s.movieId = m.movieId
+GROUP BY m.title;
+
+SELECT 
+    h.hallName,
+    COUNT(DISTINCT t.visitorId) AS uniqueVisitors
+FROM Tickets t
+JOIN Sessions s ON t.sessionId = s.sessionId
+JOIN Halls h ON s.hallId = h.hallId
+GROUP BY h.hallName;
