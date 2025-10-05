@@ -1,0 +1,84 @@
+CREATE TABLE Clients (
+    clientId INT IDENTITY(1,1) PRIMARY KEY,
+    clientName NVARCHAR(100),
+    clientPhone NVARCHAR(20)
+);
+
+CREATE TABLE Photographers (
+    photographerId INT IDENTITY(1,1) PRIMARY KEY,
+    photographerName NVARCHAR(100),
+    specialization NVARCHAR(100)
+);
+
+CREATE TABLE Services (
+    serviceId INT IDENTITY(1,1) PRIMARY KEY,
+    serviceName NVARCHAR(100),
+    price DECIMAL(8,2)
+);
+
+CREATE TABLE Photoshoots (
+    shootId INT IDENTITY(1,1) PRIMARY KEY,
+    clientId INT,
+    photographerId INT,
+    serviceId INT,
+    shootDate DATETIME,
+    FOREIGN KEY (clientId) REFERENCES Clients(clientId),
+    FOREIGN KEY (photographerId) REFERENCES Photographers(photographerId),
+    FOREIGN KEY (serviceId) REFERENCES Services(serviceId)
+);
+
+INSERT INTO Clients VALUES
+('Иван Иванов', '+7-111-222-33-44'),
+('Петр Петров', '+7-222-333-44-55'),
+('Светлана Светлова', '+7-333-444-55-66'),
+('Мария Маринина', '+7-444-555-66-77'),
+('Александр Александров', '+7-555-666-77-88');
+
+INSERT INTO Photographers VALUES
+('Алексей Фотограф', 'Свадебный'),
+('Ольга Фото', 'Портретный'),
+('Игорь Фото', 'Репортаж'),
+('Елена Фото', 'Коммерческий'),
+('Дмитрий Фото', 'Фэшн');
+
+INSERT INTO Services VALUES
+('Свадебная съемка', 50000),
+('Портретная съемка', 15000),
+('Репортажная съемка', 20000),
+('Коммерческая съемка', 30000),
+('Фэшн съемка', 40000);
+
+INSERT INTO Photoshoots VALUES
+(1, 1, 1, '2025-10-01 12:00'),
+(2, 2, 2, '2025-10-02 14:00'),
+(3, 3, 3, '2025-10-03 16:00'),
+(4, 4, 4, '2025-10-04 10:00'),
+(5, 5, 5, '2025-10-05 18:00');
+
+SELECT
+    ps.shootId,
+    c.clientName,
+    p.photographerName,
+    s.serviceName,
+    s.price,
+    ps.shootDate
+FROM Photoshoots ps
+JOIN Clients c ON ps.clientId = c.clientId
+JOIN Photographers p ON ps.photographerId = p.photographerId
+JOIN Services s ON ps.serviceId = s.serviceId
+ORDER BY ps.shootDate;
+
+SELECT
+    p.photographerName,
+    COUNT(ps.shootId) AS shootsCount
+FROM Photographers p
+LEFT JOIN Photoshoots ps ON p.photographerId = ps.photographerId
+GROUP BY p.photographerName;
+
+SELECT
+    s.serviceName,
+    COUNT(ps.shootId) AS shootsCount,
+    SUM(s.price) AS revenue
+FROM Services s
+LEFT JOIN Photoshoots ps ON s.serviceId = ps.serviceId
+GROUP BY s.serviceName;
