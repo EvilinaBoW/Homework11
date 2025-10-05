@@ -1,0 +1,124 @@
+CREATE TABLE Waiters (
+    waiterId INT IDENTITY(1,1) PRIMARY KEY,
+    waiterName NVARCHAR(100) NOT NULL,
+    waiterPhone NVARCHAR(20)
+);
+
+CREATE TABLE KitchenStations (
+    stationId INT IDENTITY(1,1) PRIMARY KEY,
+    stationName NVARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Dishes (
+    dishId INT IDENTITY(1,1) PRIMARY KEY,
+    dishName NVARCHAR(100) NOT NULL,
+    category NVARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Customers (
+    customerId INT IDENTITY(1,1) PRIMARY KEY,
+    customerName NVARCHAR(100) NOT NULL,
+    customerPhone NVARCHAR(20),
+    customerAddress NVARCHAR(200)
+);
+
+CREATE TABLE Tables (
+    tableId INT IDENTITY(1,1) PRIMARY KEY,
+    tableNumber INT NOT NULL UNIQUE
+);
+
+CREATE TABLE Orders (
+    orderId INT IDENTITY(1,1) PRIMARY KEY,
+    orderDate DATE NOT NULL,
+    tableId INT,
+    waiterId INT,
+    customerId INT,
+    kitchenStationId INT,
+    orderStatus NVARCHAR(50),
+    FOREIGN KEY (tableId) REFERENCES Tables(tableId),
+    FOREIGN KEY (waiterId) REFERENCES Waiters(waiterId),
+    FOREIGN KEY (customerId) REFERENCES Customers(customerId),
+    FOREIGN KEY (kitchenStationId) REFERENCES KitchenStations(stationId)
+);
+
+CREATE TABLE OrderDishes (
+    orderId INT,
+    dishId INT,
+    PRIMARY KEY (orderId, dishId),
+    FOREIGN KEY (orderId) REFERENCES Orders(orderId),
+    FOREIGN KEY (dishId) REFERENCES Dishes(dishId)
+);
+
+INSERT INTO Waiters (waiterName, waiterPhone) VALUES
+('Иванов И.И.', '+7-123-456-78-90'),
+('Петров П.П.', '+7-987-654-32-10'),
+('Сидоров С.С.', '+7-555-666-77-88'),
+('Кузнецова А.А.', '+7-444-555-66-77'),
+('Морозов В.В.', '+7-222-333-44-55');
+
+INSERT INTO KitchenStations (stationName) VALUES
+('Гарниры'),
+('Основные блюда'),
+('Супы'),
+('Десерты'),
+('Салаты');
+
+INSERT INTO Dishes (dishName, category) VALUES
+('Картофель фри', 'Гарнир'),
+('Стейк из говядины', 'Основное блюдо'),
+('Цезарь', 'Салат'),
+('Суп борщ', 'Суп'),
+('Чизкейк', 'Десерт'),
+('Мороженое', 'Десерт'),
+('Греческий салат', 'Салат'),
+('Пюре картофельное', 'Гарнир'),
+('Куриное филе', 'Основное блюдо'),
+('Легкий овощной суп', 'Суп');
+
+INSERT INTO Customers (customerName, customerPhone, customerAddress) VALUES
+('Смирнов А.А.', '+7-111-222-33-44', 'г. Москва, ул. Ленина, 10'),
+('Козлова М.М.', '+7-333-444-55-66', 'г. Санкт-Петербург, ул. Пушкина, 5'),
+('Иванова Т.Т.', '+7-777-888-99-00', 'г. Краснодар, ул. Советская, 12'),
+('Новиков П.П.', '+7-999-000-11-22', 'г. Екатеринбург, ул. Мира, 30'),
+('Федорова Ю.Ю.', '+7-666-555-44-33', 'г. Новосибирск, ул. Ленина, 45');
+
+INSERT INTO Tables (tableNumber) VALUES (1), (2), (3), (4), (5);
+
+INSERT INTO Orders (orderDate, tableId, waiterId, customerId, kitchenStationId, orderStatus) VALUES
+('2025-10-01', 1, 1, 1, 1, 'Выполнен'),
+('2025-10-02', 2, 2, 2, 2, 'В процессе'),
+('2025-10-03', 3, 3, 3, 3, 'Выполнен'),
+('2025-10-04', 4, 4, 4, 4, 'Отменен'),
+('2025-10-05', 5, 5, 5, 5, 'В процессе');
+
+INSERT INTO OrderDishes (orderId, dishId) VALUES
+(1, 1), (1, 3), (1, 8),
+(2, 2), (2, 4),
+(3, 5), (3, 6),
+(4, 7),
+(5, 9), (5, 10), (5, 4);
+
+SELECT
+    o.orderId,
+    o.orderDate,
+    t.tableNumber,
+    STRING_AGG(d.dishName, ', ') AS dishNames,
+    STRING_AGG(d.category, ', ') AS dishCategories,
+    w.waiterName,
+    w.waiterPhone,
+    k.stationName AS kitchenStation,
+    c.customerName,
+    c.customerPhone,
+    c.customerAddress,
+    o.orderStatus
+FROM Orders o
+    LEFT JOIN Tables t ON o.tableId = t.tableId
+    LEFT JOIN OrderDishes od ON o.orderId = od.orderId
+    LEFT JOIN Dishes d ON od.dishId = d.dishId
+    LEFT JOIN Waiters w ON o.waiterId = w.waiterId
+    LEFT JOIN KitchenStations k ON o.kitchenStationId = k.stationId
+    LEFT JOIN Customers c ON o.customerId = c.customerId
+GROUP BY
+    o.orderId, o.orderDate, t.tableNumber, w.waiterName, w.waiterPhone,
+    k.stationName, c.customerName, c.customerPhone, c.customerAddress, o.orderStatus
+ORDER BY o.orderId;
