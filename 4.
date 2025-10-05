@@ -1,0 +1,102 @@
+CREATE TABLE Medicines (
+    medicineId INT IDENTITY(1,1) PRIMARY KEY,
+    medicineName NVARCHAR(150) NOT NULL,
+    manufacturer NVARCHAR(100),
+    dosageForm NVARCHAR(50)
+);
+
+CREATE TABLE Pharmacists (
+    pharmacistId INT IDENTITY(1,1) PRIMARY KEY,
+    pharmacistName NVARCHAR(100),
+    licenseNumber NVARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    customerId INT IDENTITY(1,1) PRIMARY KEY,
+    customerName NVARCHAR(100),
+    customerPhone NVARCHAR(20)
+);
+
+CREATE TABLE Prescriptions (
+    prescriptionId INT IDENTITY(1,1) PRIMARY KEY,
+    customerId INT,
+    pharmacistId INT,
+    prescriptionDate DATE,
+    FOREIGN KEY (customerId) REFERENCES Customers(customerId),
+    FOREIGN KEY (pharmacistId) REFERENCES Pharmacists(pharmacistId)
+);
+
+CREATE TABLE PrescriptionMedicines (
+    prescriptionId INT,
+    medicineId INT,
+    quantity INT,
+    PRIMARY KEY (prescriptionId, medicineId),
+    FOREIGN KEY (prescriptionId) REFERENCES Prescriptions(prescriptionId),
+    FOREIGN KEY (medicineId) REFERENCES Medicines(medicineId)
+);
+
+INSERT INTO Medicines VALUES
+('Парацетамол', 'ФармФирма', 'Таблетки'),
+('Ибупрофен', 'МедФарм', 'Капсулы'),
+('Амоксициллин', 'БиоФарм', 'Капсулы'),
+('Витамин С', 'Здоровье', 'Таблетки'),
+('Анальгин', 'ФармПлюс', 'Раствор');
+
+INSERT INTO Pharmacists VALUES
+('Иванова И.И.', '123456789'),
+('Петров П.П.', '987654321'),
+('Сидорова С.С.', '456789123'),
+('Кузнецова А.А.', '789123456'),
+('Морозов М.М.', '321654987');
+
+INSERT INTO Customers VALUES
+('Смирнов А.А.', '+7-111-222-33-44'),
+('Кузнецова М.М.', '+7-333-444-55-66'),
+('Иванов Т.Т.', '+7-777-888-99-00'),
+('Новиков П.П.', '+7-999-000-11-22'),
+('Федорова Ю.Ю.', '+7-666-555-44-33');
+
+INSERT INTO Prescriptions VALUES
+(1, 1, '2025-10-01'),
+(2, 2, '2025-10-02'),
+(3, 3, '2025-10-03'),
+(4, 4, '2025-10-04'),
+(5, 5, '2025-10-05');
+
+INSERT INTO PrescriptionMedicines VALUES
+(1, 1, 10),
+(1, 4, 20),
+(2, 2, 15),
+(3, 3, 10),
+(4, 5, 5),
+(5, 1, 30);
+
+SELECT 
+    p.prescriptionId,
+    c.customerName,
+    ph.pharmacistName,
+    p.prescriptionDate,
+    m.medicineName,
+    pm.quantity
+FROM Prescriptions p
+JOIN Customers c ON p.customerId = c.customerId
+JOIN Pharmacists ph ON p.pharmacistId = ph.pharmacistId
+JOIN PrescriptionMedicines pm ON p.prescriptionId = pm.prescriptionId
+JOIN Medicines m ON pm.medicineId = m.medicineId
+ORDER BY p.prescriptionId;
+
+SELECT 
+    ph.pharmacistName,
+    SUM(pm.quantity) AS totalQuantity
+FROM Pharmacists ph
+JOIN Prescriptions p ON ph.pharmacistId = p.pharmacistId
+JOIN PrescriptionMedicines pm ON p.prescriptionId = pm.prescriptionId
+GROUP BY ph.pharmacistName;
+
+SELECT 
+    m.medicineName,
+    COUNT(pm.prescriptionId) AS prescriptionsCount
+FROM Medicines m
+JOIN PrescriptionMedicines pm ON m.medicineId = pm.medicineId
+GROUP BY m.medicineName
+ORDER BY prescriptionsCount DESC;
